@@ -107,17 +107,17 @@ async def handler(message: Message):
             await bot.send_message(user_id, ACCEPTED_MESSAGE, reply_markup=kb_1)
             await message.answer('Заказ принят!')
         elif tx.startswith('/ban '):
-            id_ban = int(tx[5:])
+            id_ban = int(tx.split()[-1])
             banneds = set(get_banneds())
             banneds.add(id_ban)
             update_banneds(list(banneds))
-            message.answer('Забанен!')
+            await message.answer('Забанен!')
         elif tx.startswith('/unban '):
-            id_ban = int(tx[5:])
+            id_ban = int(tx.split()[-1])
             banneds = set(get_banneds())
             banneds.discard(id_ban)
             update_banneds(list(banneds))
-            message.answer('Разбанен!')
+            await message.answer('Разбанен!')
         elif tx.startswith('/broadcast '):
             text = tx[11:]
             good = bad = 0
