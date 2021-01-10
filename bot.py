@@ -128,7 +128,9 @@ async def handler(message: Message):
                 except:
                     bad += 1
             await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
-        elif '/accept_' in message.reply_to_message.text:
+        elif tx == '/users':
+            await message.answer(f'Юзеров в боте: {len(get_users())}\nИз них забаненных: {len(get_banneds())}')
+        elif message.reply_to_message and '/accept_' in message.reply_to_message.text:
             txt = message.reply_to_message.text
             order_id = int(txt.split('/accept_')[1])
             user_id = orders[order_id]
