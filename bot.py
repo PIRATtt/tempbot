@@ -123,11 +123,11 @@ async def handler(message: Message):
             good = bad = 0
             for id in ids:
                 try:
-                    bot.send_message(id, text)
+                    await bot.send_message(id, text)
                     good += 1
                 except:
                     bad += 1
-            message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
+            await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
         elif '/accept_' in message.reply_to_message.text:
             txt = message.reply_to_message.text
             order_id = int(txt.split('/accept_')[1])
