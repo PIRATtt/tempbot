@@ -16,7 +16,7 @@ dp = Dispatcher(bot)
 WELCOME_MESSAGE = 'Привет!'
 ORDER_MESSAGE = 'Сообщение'
 CANCEL_MESSAGE = 'Заказ отменен!'
-FILLED_MESSAGE = 'Номер вашего заказа: {}\nОжидайте ответа'
+FILLED_MESSAGE = 'Номер вашего заказа: {}\nОжидайте...⏱'
 ACCEPTED_MESSAGE = 'Ваш заказ принят'
 DENIED_MESSAGE = 'Заказ отклонен!'
 
