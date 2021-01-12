@@ -5,7 +5,7 @@ from asyncio import sleep
 import random
 
 
-API_TOKEN = '1071345929:AAE9zHlNo9Xmvf1q0JXOEVZnsZeg3ZmP2Mg'
+API_TOKEN = ''
 
 logging.basicConfig(level=logging.INFO)
 
