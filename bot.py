@@ -27,6 +27,7 @@ FILLED_MESSAGE = """Номер вашего заказа: {}
 Ожидайте...⏱"""
 ACCEPTED_MESSAGE = """Ваш заказ принят"""
 DENIED_MESSAGE = """Заказ отклонен!"""
+REKVESITS = """реквезиты!!!"""
 
 FIRST_QUESTION = """1. Отправь свою ссылку на профиль с форума.
 Если ты не с форума - то прости напиши "минус"."""
@@ -49,11 +50,13 @@ SIXTH_QUESTION = """6. Цена заказа?
 
 BUTTON_1 = 'Сделать заказ'
 BUTTON_2 = 'Отменить заказ'
+BUTTON_3 = 'Реквезиты'
 
 OWNER_ID = 702885050
 
 kb_1 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_1))
 kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2))
+kb_3 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_3))
 
 users = {}
 orders = {}
@@ -105,6 +108,10 @@ async def handler(message: Message):
     else:
         await message.answer(WELCOME_MESSAGE)
 
+    if id != OWNER_ID:
+        await message.answer(REKVESITS, reply_markup=kb_3)
+    else:
+        await message.answer(REKVESITS)
 
 @dp.message_handler(content_types=ContentType.ANY)
 async def handler(message: Message):
