@@ -184,6 +184,12 @@ async def handler(message: Message):
             user_id = orders[order_id]
             await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
             users[user_id]['step'] = 7
+        elif message.reply_to_message:
+            txt = message.reply_to_message.text
+            order_id = int(txt.split(': ')[1].split()[0])
+            user_id = orders[order_id]
+            await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
+            await message.answer('Отправлено!')
 
     elif id not in users.keys():
         users[id] = {
@@ -258,7 +264,7 @@ async def handler(message: Message):
         for order_id, user_id in orders.items():
             if user_id == id:
                 break
-        await bot.send_message(OWNER_ID, f'Новое сообщение по заказу {order_id}!\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept_{order_id}\nЧто бы отклонить заказ отправьте команду /decline_{order_id}')
+        await bot.send_message(OWNER_ID, f'Новое сообщение по заказу: {order_id}!\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept_{order_id}\nЧто бы отклонить заказ отправьте команду /decline_{order_id}')
         await bot.forward_message(chat_id=OWNER_ID, from_chat_id=id, message_id=message.message_id)
 
 if __name__ == '__main__':
