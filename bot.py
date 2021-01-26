@@ -37,6 +37,16 @@ FILLED_MESSAGE = """Номер вашего заказа: {}
 Ожидайте...⏱"""
 ACCEPTED_MESSAGE = """Ваш заказ принят✅"""
 DENIED_MESSAGE = """Пока что никто из воркеров не отписал по поводу вашего заказа. Если в будущем кто-то отпишет - я свяжусь с тобой в ЛС❌"""
+CONST_MESSAGE = """При оплате всю комиссию сторонних платёжных систем вы берёте на себя!
+После оплаты надо обязательно меня уведомить!
+
+Актуальные реквизиты:
+
+QIWI: +79672256773
+QIWI card: 4890494698257425
+YOOmoney: 4100115308938360
+BTC: 1LN26u4NyScT3WqdBkzdgxRN3jfgg4MGcs
+PAYEER: P1023042699"""
 
 FIRST_QUESTION = """1. Отправь свою ссылку на профиль с форума.
 Если ты не с форума - то просто напиши "минус"."""
@@ -59,11 +69,12 @@ SIXTH_QUESTION = """6. Цена заказа?
 
 BUTTON_1 = 'Сделать заказ'
 BUTTON_2 = 'Отменить заказ'
+BUTTON_3 = """Реквизиты"""
 
 OWNER_ID = 702885050
 
-kb_1 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_1))
-kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2))
+kb_1 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_1)).add(KeyboardButton(BUTTON_3))
+kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2)).add(KeyboardButton(BUTTON_3))
 
 users = {}
 orders = {}
@@ -115,6 +126,7 @@ async def handler(message: Message):
     else:
         await message.answer(WELCOME_MESSAGE)
 
+
 @dp.message_handler(content_types=ContentType.ANY)
 async def handler(message: Message):
     id, tx = message.from_user.id, message.text
@@ -135,6 +147,13 @@ async def handler(message: Message):
             users[user_id]['step'] = 0
             await bot.send_message(user_id, ACCEPTED_MESSAGE, reply_markup=kb_1)
             await message.answer('Заказ принят!')
+        elif tx.startswith('/decline_'):
+            order_id = int(tx.split('_')[1])
+            user_id = orders[order_id]
+            del orders[order_id]
+            users[user_id]['step'] = 0
+            await bot.send_message(user_id, DENIED_MESSAGE, reply_markup=kb_1)
+            await message.answer('Заказ отклонен!')
         elif tx.startswith('/ban '):
             id_ban = int(tx.split()[-1])
             banneds = set(get_banneds())
@@ -185,6 +204,9 @@ async def handler(message: Message):
         }
         await message.answer(CANCEL_MESSAGE, reply_markup=kb_1)
 
+    elif tx == BUTTON_3:
+        await message.answer(CONST_MESSAGE)
+
     elif users[id]['step'] == 1:
         await message.answer(SECOND_QUESTION)
         users[id]['answers'].append(message.message_id)
@@ -221,13 +243,13 @@ async def handler(message: Message):
         users[id]['answers'].append(message.message_id)
         users[id]['step'] = 0
 
-        await bot.send_message(OWNER_ID, f'Новый заказ!\n\nID Заказа: {order_id}\nПользователь: [{id}](tg://user?id={id})\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept\\_{order_id}', parse_mode=ParseMode.MARKDOWN)
+        await bot.send_message(OWNER_ID, f'Новый заказ!\n\nID Заказа: {order_id}\nПользователь: [{id}](tg://user?id={id})\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept\\_{order_id}\nЧто бы отклонить заказ отправьте команду /decline\\_{order_id}', parse_mode=ParseMode.MARKDOWN)
         for msg in users[id]['answers']:
             await bot.forward_message(chat_id=OWNER_ID, from_chat_id=id, message_id=msg)
 
         users[id]['answers'] = []
 
-        await sleep(7200)
+        await sleep(3 * 3600)
 
         await message.answer(DENIED_MESSAGE, reply_markup=kb_1)
         del orders[order_id]
@@ -236,7 +258,7 @@ async def handler(message: Message):
         for order_id, user_id in orders.items():
             if user_id == id:
                 break
-        await bot.send_message(OWNER_ID, f'Новое сообщение по заказу {order_id}!\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept_{order_id}')
+        await bot.send_message(OWNER_ID, f'Новое сообщение по заказу {order_id}!\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept_{order_id}\nЧто бы отклонить заказ отправьте команду /decline_{order_id}')
         await bot.forward_message(chat_id=OWNER_ID, from_chat_id=id, message_id=message.message_id)
 
 if __name__ == '__main__':
