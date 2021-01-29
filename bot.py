@@ -139,10 +139,14 @@ async def handler(message: Message):
         ids.add(id)
         update_users(list(ids))
 
-    print(id, users.get(id))
-
     if id == OWNER_ID:
-        if tx.startswith('/accept_'):
+        if message.reply_to_message:
+            txt = message.reply_to_message.text
+            order_id = int(txt.split(': ')[1].split('\n')[0])
+            user_id = orders[order_id]
+            await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
+            await message.answer('Отправлено!')
+        elif tx.startswith('/accept_'):
             order_id = int(tx.split('_')[1])
             user_id = orders[order_id]
             del orders[order_id]
@@ -180,12 +184,6 @@ async def handler(message: Message):
             await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
         elif tx == '/users':
             await message.answer(f'Юзеров в боте: {len(get_users())}\nИз них забаненных: {len(get_banneds())}')
-        elif message.reply_to_message:
-            txt = message.reply_to_message.text
-            order_id = int(txt.split(': ')[1].split('\n')[0])
-            user_id = orders[order_id]
-            await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
-            await message.answer('Отправлено!')
 
     elif id not in users.keys():
         users[id] = {
@@ -258,7 +256,6 @@ async def handler(message: Message):
 
     elif users[id]['step'] == 7:
         for order_id, user_id in orders.items():
-            print(user_id, order_id, id)
             if user_id == id:
                 break
         await bot.send_message(OWNER_ID, f'Новое сообщение по заказу: {order_id}\n\nЧто бы задать вопрос пользователю, ответьте на это сообщение.\n\nЧто бы принять заказ отправьте команду /accept_{order_id}\nЧто бы отклонить заказ отправьте команду /decline_{order_id}')
