@@ -36,7 +36,8 @@ FILLED_MESSAGE = """Номер вашего заказа: {}
 Ищем воркера на ваш заказ👷‍♂️
 Ожидайте...⏱"""
 ACCEPTED_MESSAGE = """Ваш заказ принят✅"""
-DENIED_MESSAGE = """Пока что никто из воркеров не отписал по поводу вашего заказа. Если в будущем кто-то отпишет - я свяжусь с тобой в ЛС😉"""
+DENIED_OTMENA_MESSAGE = """Заказ отклонен❌"""
+DENIED_AFK_MESSAGE = """Пока что никто из воркеров не отписал по поводу вашего заказа. Если в будущем кто-то отпишет - я свяжусь с тобой в ЛС😉"""
 CONST_MESSAGE = """При оплате всю комиссию сторонних платёжных систем вы берёте на себя!
 После оплаты надо обязательно меня уведомить🔥
 
@@ -158,7 +159,7 @@ async def handler(message: Message):
             user_id = orders[order_id]
             del orders[order_id]
             users[user_id]['step'] = 0
-            await bot.send_message(user_id, DENIED_MESSAGE, reply_markup=kb_1)
+            await bot.send_message(user_id, DENIED_OTMENA_MESSAGE, reply_markup=kb_1)
             await message.answer('Заказ отклонен!')
         elif tx.startswith('/ban '):
             id_ban = int(tx.split()[-1])
@@ -233,9 +234,9 @@ async def handler(message: Message):
         users[id]['step'] = 6
 
     elif users[id]['step'] == 6:
-        order_id = random.randint(1000, 9999)
+        order_id = random.randint(10000, 99999)
         while order_id in orders.keys():
-            order_id = random.randint(1000, 9999)
+            order_id = random.randint(10000, 99999)
 
         orders[order_id] = id
 
@@ -251,8 +252,9 @@ async def handler(message: Message):
 
         await sleep(3 * 3600)
 
-        await message.answer(DENIED_MESSAGE, reply_markup=kb_1)
-        del orders[order_id]
+        if order_id in orders.keys():
+            await message.answer(DENIED_AFK_MESSAGE, reply_markup=kb_1)
+            del orders[order_id]
 
     elif users[id]['step'] == 7:
         for order_id, user_id in orders.items():
