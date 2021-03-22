@@ -253,8 +253,11 @@ async def handler(message: Message):
         await sleep(3 * 3600)
 
         if order_id in orders.keys():
+        try:
             await message.answer(DENIED_AFK_MESSAGE, reply_markup=kb_1)
-            del orders[order_id]
+        except:
+            pass
+        del orders[order_id]
 
     elif users[id]['step'] == 7:
         for order_id, user_id in orders.items():
