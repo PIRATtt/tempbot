@@ -176,11 +176,11 @@ async def handler(message: Message):
         elif tx.startswith('/broadcast '):
             text = tx[11:]
             good = bad = 0
-            try:
-               for id in ids:
+            for id in ids:
+                try:
                     await bot.send_message(id, text)
                     good += 1
-            except:
+                except:
                     bad += 1
             await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
         elif tx == '/users':
