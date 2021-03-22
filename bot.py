@@ -80,6 +80,7 @@ kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2)).a
 users = {}
 orders = {}
 
+
 def get_users():
     with open('users.txt', 'r') as f:
         return [int(i) for i in f.readlines()]
@@ -172,14 +173,14 @@ async def handler(message: Message):
             banneds.discard(id_ban)
             update_banneds(list(banneds))
             await message.answer('Разбанен!')
-       elif tx.startswith('/broadcast '):
+        elif tx.startswith('/broadcast '):
             text = tx[11:]
             good = bad = 0
-            try:
-               for id in ids:
+            for id in ids:
+                try:
                     await bot.send_message(id, text)
                     good += 1
-            except:
+                except:
                     bad += 1
             await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
         elif tx == '/users':
