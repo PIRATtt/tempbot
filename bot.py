@@ -172,14 +172,14 @@ async def handler(message: Message):
             banneds.discard(id_ban)
             update_banneds(list(banneds))
             await message.answer('Разбанен!')
-        elif tx.startswith('/broadcast '):
+       elif tx.startswith('/broadcast '):
             text = tx[11:]
             good = bad = 0
-            for id in ids:
-                try:
+            try:
+               for id in ids:
                     await bot.send_message(id, text)
                     good += 1
-                except:
+            except:
                     bad += 1
             await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
         elif tx == '/users':
