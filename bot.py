@@ -80,7 +80,6 @@ kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2)).a
 users = {}
 orders = {}
 
-
 def get_users():
     with open('users.txt', 'r') as f:
         return [int(i) for i in f.readlines()]
