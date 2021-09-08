@@ -45,7 +45,7 @@ CONST_MESSAGE = """При оплате всю комиссию сторонни�
 
 🥝QIWI: +79056938879
 
-💳QIWI card: 4890494698257425
+💳QIWI card: 4890494717118020
 
 🔸BTC: bc1qnnc4wkr78dvu3u7tk29lvgeqwhu0l3g85z6cde
 
