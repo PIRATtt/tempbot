@@ -12,7 +12,7 @@ import random
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token='1373154390:AAEAeDCgyOJvXfM19mXA75hfVVWbpwFj85U')
+bot = Bot(token='1373154390:AAHoQm0piYLCVewUeiYllpS044T8jU0IUec')
 dp = Dispatcher(bot,storage=MemoryStorage())
 
 
