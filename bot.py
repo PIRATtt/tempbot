@@ -20,7 +20,7 @@ import asyncio
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token='1373154390:AAHoQm0piYLCVewUeiYllpS044T8jU0IUec')
+bot = Bot(token='1373154390:AAHdUzaJv-YYSr31zNrFfDXPiR7cttj5gnc')
 dp = Dispatcher(bot,storage=MemoryStorage())
 
 
